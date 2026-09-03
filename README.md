@@ -91,7 +91,7 @@ MainFrame.Size = UDim2.new(0, 280, 0, 190)
 MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.Visible = false
-MainFrame.BackgroundTransparency = 1 -- Começa transparente para a nova animação de surgimento
+MainFrame.BackgroundTransparency = 1
 MainFrame.ZIndex = 1
 
 MainCorner.CornerRadius = UDim.new(0, 12)
@@ -246,79 +246,35 @@ FooterText.TextTransparency = 1
 FooterText.TextSize = 10.00
 FooterText.TextXAlignment = Enum.TextXAlignment.Center
 
--- TELA CINZA COM O EMOJI DA CAVEIRA E A FALA "OLÁ"
-local GraySkullOverlay = Instance.new("Frame")
-GraySkullOverlay.Name = "GraySkullOverlay"
-GraySkullOverlay.Parent = ScreenGui
-GraySkullOverlay.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-GraySkullOverlay.BackgroundTransparency = 1
-GraySkullOverlay.Size = UDim2.new(1, 0, 1, 0)
-GraySkullOverlay.ZIndex = 10005
-GraySkullOverlay.Visible = false
-
-local HelloText = Instance.new("TextLabel")
-HelloText.Parent = GraySkullOverlay
-HelloText.BackgroundTransparency = 1
-HelloText.AnchorPoint = Vector2.new(0.5, 0.5)
-HelloText.Position = UDim2.new(0.5, 0, 0.48, 0)
-HelloText.Size = UDim2.new(0, 200, 0, 50)
-HelloText.Font = Enum.Font.GothamBlack
-HelloText.Text = "Olá!"
-HelloText.TextColor3 = Color3.fromRGB(255, 255, 255)
-HelloText.TextSize = 48
-HelloText.TextTransparency = 1
-
-local SkullEmoji = Instance.new("TextLabel")
-SkullEmoji.Parent = GraySkullOverlay
-SkullEmoji.BackgroundTransparency = 1
-SkullEmoji.AnchorPoint = Vector2.new(0.5, 0.5)
-SkullEmoji.Position = UDim2.new(0.5, 0, 0.58, 0)
-SkullEmoji.Size = UDim2.new(0, 200, 0, 100)
-SkullEmoji.Font = Enum.Font.GothamBlack
-SkullEmoji.Text = "💀"
-SkullEmoji.TextColor3 = Color3.fromRGB(255, 255, 255)
-SkullEmoji.TextSize = 75
-SkullEmoji.TextTransparency = 1
-
--- FLUXO DA ANIMAÇÃO COM O "OLÁ", CAVEIRA E A NOVA ANIMAÇÃO DE APARECER (FADING SUAVE)
+-- FLUXO DA ANIMAÇÃO: TELA DE CARREGAMENTO -> FADE OUT DA TELA DE CARREGAMENTO E FADE IN DIRETO DO PAINEL
 task.spawn(function()
-    task.wait(2.5) -- Fim do carregamento principal
+    task.wait(2.5) -- Tempo de carregamento inicial
     
-    LoadBg:Destroy()
+    -- Animação suave sumindo a tela de carregamento e fazendo aparecer o painel ao mesmo tempo
+    local loadFadeOut = TweenService:Create(LoadBg, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 1})
+    local loadTextFadeOut = TweenService:Create(LoadLogoText, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 1})
+    local loadStrokeFadeOut = TweenService:Create(LoadStroke, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Transparency = 1})
     
-    GraySkullOverlay.Visible = true
-    GraySkullOverlay.BackgroundTransparency = 0
-    HelloText.TextTransparency = 0
-    SkullEmoji.TextTransparency = 0
+    loadFadeOut:Play()
+    loadTextFadeOut:Play()
+    loadStrokeFadeOut:Play()
     
-    task.wait(0.6)
+    MainFrame.Visible = true
+    local info = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     
-    local fadeGray = TweenService:Create(GraySkullOverlay, TweenInfo.new(0.3, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {BackgroundTransparency = 1})
-    local fadeHello = TweenService:Create(HelloText, TweenInfo.new(0.3, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {TextTransparency = 1})
-    local fadeSkull = TweenService:Create(SkullEmoji, TweenInfo.new(0.3, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {TextTransparency = 1})
+    TweenService:Create(MainFrame, info, {BackgroundTransparency = 0}):Play()
+    TweenService:Create(MainStroke, info, {Transparency = 0}):Play()
+    TweenService:Create(TopBar, info, {BackgroundTransparency = 0}):Play()
+    TweenService:Create(TopBarCover, info, {BackgroundTransparency = 0}):Play()
+    TweenService:Create(AvatarIcon, info, {ImageTransparency = 0}):Play()
+    TweenService:Create(Title, info, {TextTransparency = 0}):Play()
+    TweenService:Create(FarmAuraToggle, info, {BackgroundTransparency = 0, TextTransparency = 0}):Play()
+    TweenService:Create(FarmAuraStroke, info, {Transparency = 0}):Play()
+    TweenService:Create(StatusDot, info, {BackgroundTransparency = 0}):Play()
+    TweenService:Create(FooterText, info, {TextTransparency = 0}):Play()
     
-    fadeGray:Play()
-    fadeHello:Play()
-    fadeSkull:Play()
-    
-    fadeSkull.Completed:Connect(function()
-        GraySkullOverlay:Destroy()
-        
-        -- ANIMAÇÃO DE APARECER FICANDO VISÍVEL GRADATIVAMENTE (FADE IN SUAVE)
-        MainFrame.Visible = true
-        
-        local info = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-        
-        TweenService:Create(MainFrame, info, {BackgroundTransparency = 0}):Play()
-        TweenService:Create(MainStroke, info, {Transparency = 0}):Play()
-        TweenService:Create(TopBar, info, {BackgroundTransparency = 0}):Play()
-        TweenService:Create(TopBarCover, info, {BackgroundTransparency = 0}):Play()
-        TweenService:Create(AvatarIcon, info, {ImageTransparency = 0}):Play()
-        TweenService:Create(Title, info, {TextTransparency = 0}):Play()
-        TweenService:Create(FarmAuraToggle, info, {BackgroundTransparency = 0, TextTransparency = 0}):Play()
-        TweenService:Create(FarmAuraStroke, info, {Transparency = 0}):Play()
-        TweenService:Create(StatusDot, info, {BackgroundTransparency = 0}):Play()
-        TweenService:Create(FooterText, info, {TextTransparency = 0}):Play()
+    loadFadeOut.Completed:Connect(function()
+        LoadBg:Destroy()
     end)
 end)
 
@@ -328,7 +284,7 @@ local lastTapTime = 0
 local uiVisible = false
 
 task.spawn(function()
-    task.wait(3.4)
+    task.wait(3.0)
     uiVisible = true
 end)
 
