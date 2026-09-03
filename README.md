@@ -2,7 +2,6 @@ local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
 local LocalPlayer = Players.LocalPlayer
 
@@ -11,7 +10,7 @@ ScreenGui.Parent = CoreGui
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.Name = "AuraSystemAudioGui"
 
--- TELA DE CARREGAMENTO INICIAL (COMBINANDO COM O PAINEL: DARK & PROFISSIONAL)
+-- TELA DE CARREGAMENTO INICIAL
 local LoadBg = Instance.new("Frame")
 LoadBg.Name = "LoadBg"
 LoadBg.Parent = ScreenGui
@@ -19,36 +18,20 @@ LoadBg.BackgroundColor3 = Color3.fromRGB(13, 13, 16)
 LoadBg.Size = UDim2.new(1, 0, 1, 0)
 LoadBg.ZIndex = 9999
 
--- Detalhe sutil de luz central na tela de carregamento
-local LoadGlow = Instance.new("ImageLabel")
-LoadGlow.Parent = LoadBg
-LoadGlow.BackgroundTransparency = 1
-LoadGlow.AnchorPoint = Vector2.new(0.5, 0.5)
-LoadGlow.Position = UDim2.new(0.5, 0, 0.5, 0)
-LoadGlow.Size = UDim2.new(0, 400, 0, 400)
-LoadGlow.Image = "rbxassetid://6023426915"
-LoadGlow.ImageColor3 = Color3.fromRGB(45, 45, 55)
-LoadGlow.ImageTransparency = 0.8
-
-local LoadTextContainer = Instance.new("Frame")
-LoadTextContainer.Name = "LoadTextContainer"
-LoadTextContainer.Parent = LoadBg
-LoadTextContainer.BackgroundTransparency = 1
-LoadTextContainer.Position = UDim2.new(0.5, -200, 0.5, -40)
-LoadTextContainer.Size = UDim2.new(0, 400, 0, 80)
-LoadTextContainer.ZIndex = 10000
-
 local LoadLogoText = Instance.new("TextLabel")
 LoadLogoText.Name = "LoadLogoText"
-LoadLogoText.Parent = LoadTextContainer
+LoadLogoText.Parent = LoadBg
 LoadLogoText.BackgroundTransparency = 1
-LoadLogoText.Size = UDim2.new(1, 0, 1, 0)
+LoadLogoText.AnchorPoint = Vector2.new(0.5, 0.5)
+LoadLogoText.Position = UDim2.new(0.5, 0, 0.5, 0)
+LoadLogoText.Size = UDim2.new(0, 400, 0, 80)
 LoadLogoText.Font = Enum.Font.GothamBold
 LoadLogoText.Text = "GGMENU V2"
 LoadLogoText.TextColor3 = Color3.fromRGB(220, 220, 230)
 LoadLogoText.TextSize = 36
 LoadLogoText.TextXAlignment = Enum.TextXAlignment.Center
 LoadLogoText.TextYAlignment = Enum.TextYAlignment.Center
+LoadLogoText.ZIndex = 10000
 
 local LoadStroke = Instance.new("UIStroke")
 LoadStroke.Color = Color3.fromRGB(45, 45, 55)
@@ -64,7 +47,7 @@ BgMusic.Volume = 1.5
 BgMusic:Play()
 
 task.spawn(function()
-    task.wait(60)
+    task.wait(10)
     if BgMusic and BgMusic.IsPlaying then
         local tw = TweenService:Create(BgMusic, TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Volume = 0})
         tw:Play()
@@ -74,7 +57,7 @@ task.spawn(function()
     end
 end)
 
--- PAINEL PRINCIPAL (PROFISSIONAL & DARK COM ÍCONE DO JOGADOR)
+-- PAINEL PRINCIPAL
 local MainFrame = Instance.new("Frame")
 local MainCorner = Instance.new("UICorner")
 local MainStroke = Instance.new("UIStroke")
@@ -102,7 +85,6 @@ MainStroke.Thickness = 1.5
 MainStroke.Transparency = 1
 MainStroke.Parent = MainFrame
 
--- Barra Superior do Painel
 TopBar.Name = "TopBar"
 TopBar.Parent = MainFrame
 TopBar.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
@@ -120,7 +102,6 @@ TopBarCover.BorderSizePixel = 0
 TopBarCover.Position = UDim2.new(0, 0, 0.7, 0)
 TopBarCover.Size = UDim2.new(1, 0, 0.3, 0)
 
--- Avatar do Jogador na Barra Superior
 local AvatarIcon = Instance.new("ImageLabel")
 AvatarIcon.Name = "AvatarIcon"
 AvatarIcon.Parent = TopBar
@@ -154,7 +135,6 @@ Title.TextSize = 13.00
 Title.TextTransparency = 1
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- Container de Conteúdo / Botão Moderno Dark
 local ContentContainer = Instance.new("Frame")
 ContentContainer.Parent = MainFrame
 ContentContainer.BackgroundTransparency = 1
@@ -200,8 +180,8 @@ DotCorner.Parent = StatusDot
 
 local farmAuraRunning = false
 
-FarmAuraToggle.MouseButton1Click:Connect(function()
-    farmAuraRunning = not farmAuraRunning
+local function setFarmState(state)
+    farmAuraRunning = state
     if farmAuraRunning then
         FarmAuraToggle.Text = "  Farm Aura: ON"
         FarmAuraToggle.TextColor3 = Color3.fromRGB(70, 200, 100)
@@ -213,8 +193,13 @@ FarmAuraToggle.MouseButton1Click:Connect(function()
         StatusDot.BackgroundColor3 = Color3.fromRGB(180, 70, 70)
         TweenService:Create(FarmAuraToggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(22, 22, 28)}):Play()
     end
+end
+
+FarmAuraToggle.MouseButton1Click:Connect(function()
+    setFarmState(not farmAuraRunning)
 end)
 
+-- LOOP DO FARM
 task.spawn(function()
     while true do
         if farmAuraRunning then
@@ -246,11 +231,10 @@ FooterText.TextTransparency = 1
 FooterText.TextSize = 10.00
 FooterText.TextXAlignment = Enum.TextXAlignment.Center
 
--- FLUXO DA ANIMAÇÃO: TELA DE CARREGAMENTO -> FADE OUT DA TELA DE CARREGAMENTO E FADE IN DIRETO DO PAINEL
+-- ANIMAÇÃO DE ENTRADA DO PAINEL
 task.spawn(function()
-    task.wait(2.5) -- Tempo de carregamento inicial
+    task.wait(2.5)
     
-    -- Animação suave sumindo a tela de carregamento e fazendo aparecer o painel ao mesmo tempo
     local loadFadeOut = TweenService:Create(LoadBg, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 1})
     local loadTextFadeOut = TweenService:Create(LoadLogoText, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 1})
     local loadStrokeFadeOut = TweenService:Create(LoadStroke, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Transparency = 1})
