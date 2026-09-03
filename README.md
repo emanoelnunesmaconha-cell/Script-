@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -270,6 +271,9 @@ local function AddChatMessage(senderName, userId, message, isScript, rawScriptCo
     ChatContainer.CanvasPosition = Vector2.new(0, ChatContainer.CanvasSize.Y.Offset)
 end
 
+-- TENTATIVA DE USAR UM EVENTO DO JOGO OU CRIAR CANAL REPLICADO SE POSSÍVEL
+local chatRemote = ReplicatedStorage:FindFirstChild("GlobalScriptChatEvent")
+
 SendButton.MouseButton1Click:Connect(function()
     local text = InputBox.Text
     if text ~= "" then
@@ -279,10 +283,28 @@ SendButton.MouseButton1Click:Connect(function()
             displayMsg = "[SCRIPT COMPARTILHADO]"
         end
         
+        -- Mostra na própria tela
         AddChatMessage(LocalPlayer.Name, LocalPlayer.UserId, displayMsg, isScriptMode, scriptContent)
+        
+        -- Se houver um remote compartilhado, envia para os outros
+        if chatRemote and chatRemote:IsA("RemoteEvent") then
+            pcall(function()
+                chatRemote:FireServer(displayMsg, isScriptMode, scriptContent)
+            end)
+        end
+        
         InputBox.Text = ""
     end
 end)
+
+-- Ouve mensagens de outros jogadores caso o jogo tenha o Remote criado
+if chatRemote and chatRemote:IsA("RemoteEvent") then
+    chatRemote.OnClientEvent:Connect(function(player, displayMsg, isScript, scriptContent)
+        if player ~= LocalPlayer then
+            AddChatMessage(player.Name, player.UserId, displayMsg, isScript, scriptContent)
+        end
+    end)
+end
 
 AddChatMessage("SistemaGlobal", 1, "Painel unificado carregado com sucesso!", false, "")
 
