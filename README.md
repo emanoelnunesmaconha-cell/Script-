@@ -199,10 +199,11 @@ FarmAuraToggle.MouseButton1Click:Connect(function()
     setFarmState(not farmAuraRunning)
 end)
 
--- LOOP DO FARM
+-- LOOP DO FARM COM PARADA E O REBUFF DISPARANDO ENQUANTO ANDA
 task.spawn(function()
     while true do
         if farmAuraRunning then
+            -- 1. Os dois primeiros remotes de farm/energia
             pcall(function()
                 game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("Farm"):FireServer()
             end)
@@ -211,9 +212,51 @@ task.spawn(function()
                 game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("Energy"):FireServer()
             end)
             task.wait(2)
-            pcall(function()
-                game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("Rebirth"):InvokeServer()
-            end)
+
+            -- 2. Pausa o farm principal por 10 segundos e inicia a movimentação
+            if farmAuraRunning then
+                pcall(function()
+                    local character = LocalPlayer.Character
+                    if character and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("Humanoid") then
+                        local humanoidRootPart = character.HumanoidRootPart
+                        local humanoid = character.Humanoid
+
+                        -- Acha um jogador próximo ou define destino aleatório
+                        local targetPosition = nil
+                        local shortestDistance = math.huge
+
+                        for _, player in ipairs(Players:GetPlayers()) do
+                            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                                local dist = (humanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                                if dist < shortestDistance and dist < 150 then
+                                    shortestDistance = dist
+                                    targetPosition = player.Character.HumanoidRootPart.Position
+                                end
+                            end
+                        end
+
+                        if not targetPosition then
+                            local randomOffset = Vector3.new(math.random(-30, 30), 0, math.random(-30, 30))
+                            targetPosition = humanoidRootPart.Position + randomOffset
+                        end
+
+                        -- Manda o bot andar até o destino
+                        humanoid:MoveTo(targetPosition)
+                    end
+                end)
+
+                -- Durante esses 10 segundos de caminhada, o remote de Rebirth (rebuf) pode ser disparado em paralelo
+                local waitTime = 0
+                while waitTime < 10 and farmAuraRunning do
+                    -- Dispara o Rebirth (rebuf) enquanto anda
+                    pcall(function()
+                        game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("Rebirth"):InvokeServer()
+                    end)
+                    
+                    task.wait(1)
+                    waitTime = waitTime + 1
+                end
+            end
         end
         task.wait(0.1)
     end
